@@ -1,96 +1,110 @@
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
-import { useState, useCallback, useEffect, useRef } from 'react' // Added useEffect import
+import { useState, useCallback, useRef } from 'react'
 
 function App() {
   const [length, setLength] = useState(8)
   const [numberAllowed, setNumberAllowed] = useState(false)
-  const [charAllowed, setCharAllowed] = useState(false) // Fixed variable name casing
+  const [charAllowed, setCharAllowed] = useState(false)
   const [password, setPassword] = useState("")
+  const [copySuccess, setCopySuccess] = useState(false)
   const passwordRef = useRef(null)
 
   const passwordGenerator = useCallback(() => {
     let pass = ""
     let str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
     if (numberAllowed) str += "0123456789"
-    if (charAllowed) str += "!@#$%^&*()_+-=[]{}|;:' ,.<>/?`" 
+    if (charAllowed) str += "!@#$%^&*()_+-=[]{}|;:'\",.<>/?`" 
     
-    // Moved for loop inside the useCallback function
-    for (let i = 1; i <= length; i++) { // Changed < to <= to generate full length password
-      let char = Math.floor(Math.random() * str.length)  // Removed +1 to avoid index out of bounds
-      pass += str.charAt(char) // Fixed method name from charAT to charAt
+    for (let i = 0; i < length; i++) {
+      const char = Math.floor(Math.random() * str.length)
+      pass += str.charAt(char)
     }
     
     setPassword(pass)
-  }, [length, numberAllowed, charAllowed, setPassword])
+  }, [length, numberAllowed, charAllowed])
 
-  const passwordCopy = useCallback (() => {
+  const copyToClipboard = useCallback(() => {
     passwordRef.current?.select()
     window.navigator.clipboard.writeText(password)
+      .then(() => {
+        setCopySuccess(true)
+        setTimeout(() => {
+          setCopySuccess(false)
+        }, 2000)
+      })
+      .catch(err => {
+        console.error('Failed to copy: ', err)
+      })
   }, [password])
-
-  useEffect (() => {
-    passwordGenerator()
-    
-  }, [length, numberAllowed, charAllowed, setPassword])
   
   return (
-    <>
-      <div className='w-full max-w-md mx-auto shadow-md rounded-lg overflow-hidden mb-4 text-orange-500 bg-gray-700 p-4 items-center justify-center mt-26'>
-        <h1 className='text-white text-center text-2xl my-3'>Random Password Generator</h1>
-        <div className='flex  items-center justify-center shadow rounded-lg overflow-hidden mb-4'>
+    <div className="flex min-h-screen items-center justify-center bg-gray-900 py-8">
+      <div className="w-full max-w-md rounded-lg bg-gray-800 p-6 shadow-lg">
+        <h1 className="mb-6 text-center text-2xl font-bold text-white">Random Password Generator</h1>
+        
+        <div className="mb-6 flex overflow-hidden rounded-lg shadow">
           <input 
             type="text"
             value={password}
-            className='outline-none w-full py-1 px-3 bg-white'
-            placeholder='Password'
+            className="w-full bg-gray-700 px-4 py-3 text-lg text-white outline-none"
+            placeholder="Your password"
             readOnly
             ref={passwordRef}
           />
-          <button onClick={passwordCopy} className='outline-none bg-blue-700 text-white px-3 py-0.5 shrink-0 cursor-pointer'>Copy</button>
-
-          </div>
-          <div className='flex text-sm gap-x-2'>
-            <div className='flex items-center gap-x-1'>
-              <input 
+          <button 
+            onClick={copyToClipboard} 
+            className="bg-blue-600 px-4 py-2 font-medium text-white transition hover:bg-blue-700"
+          >
+            {copySuccess ? "Copied!" : "Copy"}
+          </button>
+        </div>
+        
+        <div className="mb-6">
+          <div className="mb-4 flex items-center">
+            <label className="mr-3 w-24 text-white">Length: {length}</label>
+            <input 
               type="range"
               value={length}
               min={6}
-              max={99}
-              className='cursor-pointer'
-              onChange={(e) => setLength(e.target.value)}
-              />
-              <label>Lengt: {length}</label>
-
-            </div>
-           <div className='flex items-center gap-x-1'>
-              <input 
-              type='checkbox'
-              defaultChecked={numberAllowed}
-              id= "numberInput"
-              onChange={() => {
-               
-                setNumberAllowed ((prev) => !prev)
-              }}
-              
-              />
-              <label htmlFor="numberInput">Numbers</label>
-              </div>
-              <div className="flex items-center gap-x-1">
-          <input
-              type="checkbox"
-              defaultChecked={charAllowed}
-              id="characterInput"
-              onChange={() => {
-                  setCharAllowed((prev) => !prev )
-              }}
-          />
-          <label htmlFor="characterInput">Characters</label>
-      </div>
+              max={32}
+              className="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-700"
+              onChange={(e) => setLength(parseInt(e.target.value))}
+            />
           </div>
+          
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center">
+              <input 
+                type="checkbox"
+                checked={numberAllowed}
+                id="numberInput"
+                onChange={() => setNumberAllowed(prev => !prev)}
+                className="mr-2 h-4 w-4"
+              />
+              <label htmlFor="numberInput" className="text-white">Include Numbers</label>
+            </div>
+            
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                checked={charAllowed}
+                id="characterInput"
+                onChange={() => setCharAllowed(prev => !prev)}
+                className="mr-2 h-4 w-4"
+              />
+              <label htmlFor="characterInput" className="text-white">Include Symbols</label>
+            </div>
+          </div>
+        </div>
+        
+        <button 
+          onClick={passwordGenerator}
+          className="w-full rounded-lg bg-green-600 py-3 font-bold text-white transition hover:bg-green-700"
+        >
+          Generate Password
+        </button>
       </div>
-    </>
+    </div>
   )
 }
 
