@@ -1,4 +1,8 @@
-# React + Vite
+# Random Password Generator
+
+If you want to create a strong password quickly, use this tool to generate a password quickly. 
+
+For Preview: https://random-password-generator-three-steel.vercel.app/
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
